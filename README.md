@@ -1,1 +1,1 @@
-# AI-in-medical-imaging
+# AI in medical imaging
