@@ -52,23 +52,22 @@ def nifti_to_dcm_with_metadata(nifti_file, dicom_dir, output_dir):
             dcm.ImageComments = "Masked CT Slice"  # Add a comment
 
             # Extract pixel data for the current slice and add it to DICOM dataset
-            slice_data = image_data[:, :, num_slices - 1 - int(dcm.InstanceNumber - min_slice_num)].astype(np.int32)  # Adjust data type if needed
-            slice_data = np.flip(slice_data, axis=1)           # NIfTI slice view is the opposite of my original DICOM slice view
-            result_array = 2000*slice_data
-            result_array[result_array==0] = -2000
+            slice_data = image_data[:, :, num_slices - 1 - int(dcm.InstanceNumber - min_slice_num)].astype(
+                np.int16)  # Adjust data type if needed
+            slice_data = np.flip(slice_data, axis=1)
+            result_array = 1000 * slice_data
+            result_array[slice_data == 0] = -1000
 
-            dcm.PhotometricInterpretation = "MONOCHROME2"
             dcm.SamplesPerPixel = 1
             dcm.BitsStored = 16
             dcm.BitsAllocated = 16
             dcm.HighBit = 15
             dcm.PixelRepresentation = 1
-
             dcm.PixelData = result_array.tobytes()
 
             # 4. Save the DICOM file
             output_filename = os.path.join(output_dir, f"slice_{i + 1:04d}.dcm")
-            file_dataset = FileDataset(output_filename, dcm, file_meta=dcm.file_meta, preamble=b"\0" * 128)
+            file_dataset = FileDataset(output_filename, dcm)
             file_dataset.save_as(output_filename)
 
         print(
